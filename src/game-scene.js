@@ -1,6 +1,14 @@
 import { Scene } from 'phaser';
 
 class GameScene extends Scene {
+  constructor() {
+    super();
+    this.score = 0;
+    this.gameOver = false
+  }
+
+  //======================================================
+  //Preload===============================================
 
   preload() {
     this.load.image('sky', 'src/assets/sky.png');
@@ -13,11 +21,18 @@ class GameScene extends Scene {
     );
   };
 
+  //======================================================
+  //Create================================================
+
   create() {
     this.add.image(400, 300, 'sky');
     this.createPlatforms();
     this.createPlayer();
     this.createCursor();
+    this.createStars();
+    this.createBombs();
+
+    this.scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
 
   };
 
@@ -61,13 +76,60 @@ class GameScene extends Scene {
 
   }
 
+  createStars() {
+    this.stars = this.physics.add.group({
+      key: 'star',
+      repeat: 11,
+      setXY: { x: 12, y: 0, stepX: 70 },
+    });
+
+    this.stars.children.iterate((child) => {
+      child.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8));
+    });
+
+    this.physics.add.collider(this.stars, this.platforms);
+    this.physics.add.overlap(this.player, this.stars, this.collectStar, null, this);
+  }
+
+  collectStar(player, star) {
+    star.disableBody(true, true);
+
+    this.score += 10;
+    this.scoreText.setText('Score: ' + this.score);
+    if (this.stars.countActive(true) === 0) {
+      this.stars.children.iterate((child) => {
+        child.enableBody(true, child.x, 0, true, true);
+      });
+
+      const x = (this.player.x < 400) ? Phaser.Math.Between(400, 800) : Phaser.Math.Between(0, 400);
+      const bomb = this.bombs.create(x, 16, 'bomb');
+      bomb.setBounce(1);
+      bomb.setCollideWorldBounds(true);
+      bomb.setVelocity(Phaser.Math.Between(-200, 200), 20);
+    }
+  };
+
+  createBombs() {
+    this.bombs = this.physics.add.group();
+    this.physics.add.collider(this.bombs, this.platforms);
+    this.physics.add.collider(this.player, this.bombs, this.hitBomb, null, this);
+  }
+
+  hitBomb (player, bomb) {
+    this.physics.pause();
+    player.setTint(0xff0000);
+    player.anims.play('turn');
+    this.gameOver = true;
+  }
+
+  //=====================================================
+  //Update===============================================
   update() {
     if (this.cursors.left.isDown) {
       this.player.setVelocityX(-160);
       this.player.anims.play('left', true);
     } else if (this.cursors.right.isDown) {
       this.player.setVelocityX(160);
-
       this.player.anims.play('right', true);
     } else {
       this.player.setVelocityX(0);
