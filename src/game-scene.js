@@ -1,8 +1,9 @@
 import { Scene } from 'phaser';
+import particleConfig from './particle-config.js';
 
 class GameScene extends Scene {
   constructor() {
-    super();
+    super('game');
     this.score = 0;
     this.gameOver = false
   }
@@ -32,9 +33,18 @@ class GameScene extends Scene {
     this.createStars();
     this.createBombs();
 
-    this.scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
+    this.createParticles();
 
+    this.scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
+    this.gameOverText = this.add.text(400, 300, 'Game Over', { fontSize: '64px', fill: '#ff3003' });
+    this.gameOverText.setOrigin(0.5);
+    this.gameOverText.visible = false;
   };
+
+  createParticles() {
+    this.particles = this.add.particles('star');
+    this.emitter = this.particles.createEmitter(particleConfig);
+  }
 
   createPlatforms() {
     this.platforms = this.physics.add.staticGroup();
@@ -45,7 +55,9 @@ class GameScene extends Scene {
   }
 
   createPlayer() {
-    this.player = this.physics.add.sprite(100, 450, 'dude');
+    this.player = this.physics.add.sprite(100, 450,
+      'dude');
+    this.player.setCircle(17, 0, 15);
     this.player.setBounce(0.2);
     this.player.setCollideWorldBounds(true);
     this.physics.add.collider(this.player, this.platforms);
@@ -85,6 +97,7 @@ class GameScene extends Scene {
 
     this.stars.children.iterate((child) => {
       child.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8));
+      child.setCircle(12);
     });
 
     this.physics.add.collider(this.stars, this.platforms);
@@ -93,7 +106,7 @@ class GameScene extends Scene {
 
   collectStar(player, star) {
     star.disableBody(true, true);
-
+    this.particles.emitParticleAt(star.x, star.y, 50);
     this.score += 10;
     this.scoreText.setText('Score: ' + this.score);
     if (this.stars.countActive(true) === 0) {
@@ -120,6 +133,8 @@ class GameScene extends Scene {
     player.setTint(0xff0000);
     player.anims.play('turn');
     this.gameOver = true;
+    this.gameOverText.visible = true;
+    this.input.on('pointerdown', () => this.scene.start('preload'));
   }
 
   //=====================================================
