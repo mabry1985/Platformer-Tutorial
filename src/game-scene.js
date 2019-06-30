@@ -5,7 +5,7 @@ class GameScene extends Scene {
   constructor() {
     super('game');
     this.score = 0;
-    this.gameOver = false
+    this.gameOver = false;
   }
 
   //======================================================
@@ -32,7 +32,6 @@ class GameScene extends Scene {
     this.createCursor();
     this.createStars();
     this.createBombs();
-
     this.createParticles();
 
     this.scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
@@ -140,6 +139,8 @@ class GameScene extends Scene {
   //=====================================================
   //Update===============================================
   update() {
+    console.log(this.score);
+    console.log(this.gameOver);
     if (this.cursors.left.isDown) {
       this.player.setVelocityX(-160);
       this.player.anims.play('left', true);
@@ -153,7 +154,13 @@ class GameScene extends Scene {
 
     if (this.cursors.up.isDown && this.player.body.touching.down) {
       this.player.setVelocityY(-330);
+    };
+
+    if (this.gameOver === true) {
+      this.score = 0;
+      this.gameOver = false;
     }
+
   };
 };
 
