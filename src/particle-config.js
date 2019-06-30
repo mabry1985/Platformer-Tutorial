@@ -1,6 +1,4 @@
 export default {
-
-
   x: 400,
   y: 300,
   speed: 200,

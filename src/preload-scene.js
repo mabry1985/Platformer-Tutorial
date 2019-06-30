@@ -11,7 +11,7 @@ class PreloadScene extends Scene {
 
   create() {
     this.add.image(400, 300, 'logo');
-    this.input.on('pointerdown', () => this.scene.start('game'));
+    this.input.keyboard.once('keydown', () => this.scene.start('game'));
   }
 }
 export default PreloadScene;
